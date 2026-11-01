@@ -2,6 +2,8 @@ import { Footer } from "@/components/store/Footer";
 import { Header } from "@/components/store/Header";
 import { getStoreSettings } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
   let settings = {
     businessName: "NINE XN GARMENTS",

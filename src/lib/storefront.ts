@@ -30,8 +30,9 @@ export function serializeProduct<
       size: variant.size,
       colour: variant.colour,
     }));
+  const { images: _images, variants: _variants, ...rest } = product;
   return {
-    ...product,
+    ...rest,
     imageUrl: images[0]?.url || null,
     images,
     availableSizes: [...new Map(variants.map((v) => [v.size.id, v.size])).values()],
