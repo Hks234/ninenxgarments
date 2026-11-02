@@ -3,6 +3,8 @@
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/nine-xn-logo.jpg" alt="NINE XN GARMENTS" className="mb-6 h-20 w-20 rounded-full object-cover" />
       <p className="text-xs uppercase tracking-[0.4em] text-[#c8b273]">NINE XN GARMENTS</p>
       <h1 className="mt-4 font-display text-5xl">Something went wrong</h1>
       <p className="mt-4 max-w-md text-[#b4b4ae]">The page could not be loaded. Try again, or return to the collection.</p>

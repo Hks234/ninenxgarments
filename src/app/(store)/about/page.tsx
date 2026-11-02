@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/store/Logo";
 import { getStoreSettings } from "@/lib/settings";
 
 export const metadata = { title: "About" };
@@ -7,6 +8,7 @@ export default async function AboutPage() {
   const settings = await getStoreSettings();
   return (
     <article className="mx-auto max-w-3xl space-y-6 reveal-in">
+      <Logo name={settings.businessName} url={settings.logoUrl} size="mark" />
       <p className="text-xs uppercase tracking-[0.4em] text-[#c8b273]">NINE XN GARMENTS</p>
       <h1 className="hero-title font-display text-5xl">About the store</h1>
       <p className="text-lg leading-8 text-[#b4b4ae]">

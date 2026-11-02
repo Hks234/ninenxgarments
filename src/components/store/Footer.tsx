@@ -20,7 +20,7 @@ export function Footer({
     <footer className="mt-24 border-t border-[#2a2a2a] bg-black">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4">
         <div className="space-y-4">
-          <Logo name={name} url={logoUrl} />
+          <Logo name={name} url={logoUrl} size="footer" />
           <p className="font-display text-2xl tracking-[0.18em]">{name}</p>
           <p className="text-sm text-[#b4b4ae]">{address}</p>
           <p className="text-sm">Phone: {phone}</p>

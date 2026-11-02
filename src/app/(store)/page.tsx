@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HomepageVideos } from "@/components/store/HomepageVideos";
+import { Logo } from "@/components/store/Logo";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Reveal } from "@/components/store/Reveal";
 import { getHomepageConfig, getStoreSettings } from "@/lib/settings";
@@ -41,6 +42,9 @@ export default async function HomePage() {
         )}
         <div className="hero-glow" />
         <div className="relative px-6 py-24 text-center md:py-40">
+          <div className="mb-8 flex justify-center reveal-in">
+            <Logo name={settings.businessName} url={settings.logoUrl} size="hero" />
+          </div>
           <p className="mb-5 text-xs uppercase tracking-[0.45em] text-[#c8b273] reveal-in">NINE XN GARMENTS</p>
           <h1 className="hero-title font-display text-5xl md:text-8xl">{homepage.heroHeadline}</h1>
           <div className="gold-rule mx-auto my-8 w-40" />

@@ -26,7 +26,9 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#050505] px-4">
       <form onSubmit={submit} className="w-full max-w-md border border-[#2a2a2a] bg-[#111] p-8">
-        <p className="text-xs uppercase tracking-[0.35em] text-[#c8b273]">NINE XN GARMENTS</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/nine-xn-logo.jpg" alt="NINE XN GARMENTS" className="mx-auto mb-5 h-20 w-20 rounded-full object-cover" />
+        <p className="text-center text-xs uppercase tracking-[0.35em] text-[#c8b273]">NINE XN GARMENTS</p>
         <h1 className="mt-3 font-display text-4xl">Admin login</h1>
         <label className="mt-8 block text-sm">Username</label>
         <input value={username} onChange={(e) => setUsername(e.target.value)} className="mt-2 w-full border border-[#2a2a2a] bg-black px-3 py-2" autoComplete="username" />

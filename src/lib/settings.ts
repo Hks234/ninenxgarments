@@ -37,8 +37,8 @@ export async function getStoreSettings() {
   });
   return {
     ...row,
-    logoUrl: mediaUrl(row.logoKey),
-    faviconUrl: mediaUrl(row.faviconKey || row.logoKey),
+    logoUrl: mediaUrl(row.logoKey) || "/nine-xn-logo.jpg",
+    faviconUrl: mediaUrl(row.faviconKey || row.logoKey) || "/nine-xn-logo.jpg",
   };
 }
 

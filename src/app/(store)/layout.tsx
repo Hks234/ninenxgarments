@@ -10,7 +10,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
     businessAddress: "Old Nagar Nigam Road, Goti Maholla, Burhanpur, Madhya Pradesh 450331, India.",
     businessPhone: "099931 22660",
     instagramUrl: "https://www.instagram.com/ninexngarmentsburhanpur/",
-    logoUrl: null as string | null,
+    logoUrl: "/nine-xn-logo.jpg" as string | null,
     footerText: "Clothing from Burhanpur, Madhya Pradesh. Browse the collection and complete purchases through secure online payment." as string | null,
   };
   try {

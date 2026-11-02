@@ -31,7 +31,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <aside className="border-b border-[#2a2a2a] bg-black lg:border-b-0 lg:border-r">
         <div className="px-5 py-6">
           <p className="text-[10px] uppercase tracking-[0.35em] text-[#c8b273]">Admin</p>
-          <p className="mt-2 font-display text-2xl">NINE XN</p>
+          <div className="mt-3 flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/nine-xn-logo.jpg" alt="NINE XN GARMENTS" className="h-12 w-12 rounded-full object-cover" />
+            <p className="font-display text-2xl">NINE XN</p>
+          </div>
         </div>
         <nav className="flex flex-wrap gap-2 px-4 pb-4 lg:flex-col">
           {links.map((link) => {

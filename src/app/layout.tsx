@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       description: `${settings.businessName} is a garment exporter and clothing store in Burhanpur, Madhya Pradesh.`,
       metadataBase: new URL(process.env.APP_URL || "http://localhost:3000"),
-      icons: settings.faviconUrl ? [{ rel: "icon", url: settings.faviconUrl }] : undefined,
+      icons: [{ rel: "icon", url: settings.faviconUrl || "/nine-xn-logo.jpg" }],
       openGraph: {
         title: settings.businessName,
         description: `Discover your style with ${settings.businessName}.`,
@@ -34,6 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: "NINE XN GARMENTS | Clothing Store in Burhanpur",
       description: "NINE XN GARMENTS is a garment exporter and clothing store in Burhanpur, Madhya Pradesh.",
+      icons: [{ rel: "icon", url: "/nine-xn-logo.jpg" }],
     };
   }
 }
