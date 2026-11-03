@@ -29,7 +29,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     });
     return json({
       ...video,
-      videoUrl: videoPlaybackUrl(video.id),
+      videoUrl: videoPlaybackUrl(video.id, video.videoKey),
       posterUrl: mediaUrl(video.posterKey),
     });
   } catch (error) {

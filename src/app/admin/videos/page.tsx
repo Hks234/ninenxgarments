@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import { useEffect, useState } from "react";
 
 type VideoRow = {
@@ -12,15 +13,32 @@ type VideoRow = {
   isActive: boolean;
 };
 
+type StorageMode = "blob" | "local" | "vercel-unconfigured";
+
+function safeVideoName(file: File) {
+  const cleaned = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 80);
+  if (/\.(mp4|webm|mov|m4v)$/i.test(cleaned)) return cleaned;
+  return `${cleaned || "look"}.mp4`;
+}
+
 export default function AdminVideosPage() {
   const [videos, setVideos] = useState<VideoRow[]>([]);
+  const [storage, setStorage] = useState<StorageMode>("local");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   async function load() {
     const data = await fetch("/api/admin/homepage/videos").then((r) => r.json());
-    setVideos(Array.isArray(data) ? data : []);
+    if (Array.isArray(data)) {
+      setVideos(data);
+      return;
+    }
+    setVideos(Array.isArray(data.videos) ? data.videos : []);
+    if (data.storage === "blob" || data.storage === "local" || data.storage === "vercel-unconfigured") {
+      setStorage(data.storage);
+    }
   }
 
   useEffect(() => {
@@ -38,21 +56,61 @@ export default function AdminVideosPage() {
         </p>
       </div>
 
+      {storage === "vercel-unconfigured" && (
+        <p className="border border-[#c8b273]/40 bg-black p-4 text-sm leading-7 text-[#c8b273]">
+          Video uploads on Vercel need a Blob store. In the Vercel dashboard open this project → Storage → Create
+          Database → Blob, connect it, then redeploy. Until then, uploads hang because Vercel cannot accept a large
+          video through the server.
+        </p>
+      )}
+
       <form
         className="space-y-4 border border-[#2a2a2a] bg-[#0d0d0d] p-6"
         onSubmit={async (e) => {
           e.preventDefault();
           setError("");
           setMessage("");
+          setProgress(0);
+          if (storage === "vercel-unconfigured") {
+            setError("Connect Vercel Blob, then redeploy, before uploading videos.");
+            return;
+          }
+          const formEl = e.currentTarget;
+          const form = new FormData(formEl);
+          const videoFile = form.get("video");
           setSaving(true);
-          const form = new FormData(e.currentTarget);
-          const response = await fetch("/api/admin/homepage/videos", { method: "POST", body: form });
-          const data = await response.json();
-          setSaving(false);
-          if (!response.ok) return setError(data.error || "Could not upload video");
-          e.currentTarget.reset();
-          setMessage("Video added to the homepage reel.");
-          load();
+          try {
+            if (storage === "blob") {
+              if (!(videoFile instanceof File) || videoFile.size === 0) {
+                setError("Choose a 9:16 portrait video to upload.");
+                return;
+              }
+              const blob = await upload(`homepage-videos/${safeVideoName(videoFile)}`, videoFile, {
+                access: "public",
+                handleUploadUrl: "/api/admin/homepage/videos/blob",
+                multipart: true,
+                contentType: videoFile.type || undefined,
+                onUploadProgress: (event) => setProgress(Math.round(event.percentage)),
+              });
+              form.set("videoUrl", blob.url);
+              form.set("mimeType", blob.contentType || videoFile.type || "video/mp4");
+              form.delete("video");
+            }
+            const response = await fetch("/api/admin/homepage/videos", { method: "POST", body: form });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              setError(data.error || "Could not upload video");
+              return;
+            }
+            formEl.reset();
+            setMessage("Video added to the homepage reel.");
+            load();
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Could not upload video. Try a smaller MP4 or reconnect Blob storage.");
+          } finally {
+            setSaving(false);
+            setProgress(0);
+          }
         }}
       >
         <h2 className="font-display text-3xl">Add video</h2>
@@ -70,7 +128,7 @@ export default function AdminVideosPage() {
         </label>
         <label className="block text-sm text-[#b4b4ae]">
           9:16 video
-          <input name="video" type="file" required accept="video/mp4,video/webm,video/quicktime" className="mt-1 block w-full text-sm" />
+          <input name="video" type="file" required accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v" className="mt-1 block w-full text-sm" />
         </label>
         <label className="block text-sm text-[#b4b4ae]">
           Poster image (optional)
@@ -82,7 +140,7 @@ export default function AdminVideosPage() {
         {error && <p className="text-sm text-red-300">{error}</p>}
         {message && <p className="text-sm text-[#c8b273]">{message}</p>}
         <button disabled={saving} className="bg-[#c8b273] px-6 py-3 text-black disabled:opacity-60">
-          {saving ? "Uploading…" : "Upload video"}
+          {saving ? (progress > 0 ? `Uploading… ${progress}%` : "Uploading…") : "Upload video"}
         </button>
       </form>
 

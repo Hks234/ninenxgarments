@@ -1,12 +1,21 @@
 import { requireAdmin } from "@/lib/auth";
 import { errorResponse, json } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
-import { deleteImage, mediaUrl, saveImage, saveVideoFile, videoPlaybackUrl } from "@/lib/storage";
+import {
+  deleteImage,
+  isAllowedBlobUrl,
+  mediaUrl,
+  saveImage,
+  saveVideoFile,
+  videoPlaybackUrl,
+  videoStorageMode,
+} from "@/lib/storage";
 
 function serialize(video: {
   id: string;
   title: string;
   caption: string;
+  videoKey: string;
   posterKey: string | null;
   displayOrder: number;
   isActive: boolean;
@@ -15,7 +24,7 @@ function serialize(video: {
 }) {
   return {
     ...video,
-    videoUrl: videoPlaybackUrl(video.id),
+    videoUrl: videoPlaybackUrl(video.id, video.videoKey),
     posterUrl: mediaUrl(video.posterKey),
   };
 }
@@ -25,18 +34,39 @@ export async function GET() {
   const videos = await prisma.homepageVideo.findMany({
     orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
   });
-  return json(videos.map(serialize));
+  return json({
+    videos: videos.map(serialize),
+    storage: videoStorageMode(),
+  });
 }
 
 export async function POST(request: Request) {
   if (!(await requireAdmin().catch(() => null))) return errorResponse("Unauthorized", 401);
   try {
     const form = await request.formData();
+    const remoteUrl = String(form.get("videoUrl") || "").trim();
     const file = form.get("video");
-    if (!(file instanceof File) || file.size === 0) {
+    let saved: { filename: string; mimeType: string };
+
+    if (remoteUrl) {
+      if (!isAllowedBlobUrl(remoteUrl)) {
+        return errorResponse("That video URL is not from the store Blob.");
+      }
+      saved = {
+        filename: remoteUrl,
+        mimeType: String(form.get("mimeType") || "video/mp4"),
+      };
+    } else if (file instanceof File && file.size > 0) {
+      if (videoStorageMode() !== "local") {
+        return errorResponse(
+          "Connect a Vercel Blob store in the Vercel dashboard (Storage → Blob), then redeploy. Large videos cannot be uploaded through the Vercel server.",
+        );
+      }
+      saved = await saveVideoFile(file);
+    } else {
       return errorResponse("Choose a 9:16 portrait video to upload.");
     }
-    const saved = await saveVideoFile(file);
+
     const poster = form.get("poster");
     let posterKey: string | undefined;
     if (poster instanceof File && poster.size > 0) {

@@ -10,6 +10,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   const video = await prisma.homepageVideo.findUnique({ where: { id } });
   if (!video) return new Response("Not found", { status: 404 });
 
+  if (/^https?:\/\//i.test(video.videoKey)) {
+    return Response.redirect(video.videoKey, 302);
+  }
+
   const filePath = videoFilePath(video.videoKey);
   if (!existsSync(filePath)) return new Response("Not found", { status: 404 });
 

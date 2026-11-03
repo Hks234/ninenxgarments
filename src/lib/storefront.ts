@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
-import { mediaUrl } from "./storage";
+import { mediaUrl, videoPlaybackUrl } from "./storage";
 import { getHomepageConfig } from "./settings";
 
 const HOMEPAGE_PRODUCT_LIMIT = 20;
@@ -180,7 +180,7 @@ export async function getHomepageVideos() {
   });
   return videos.map((video) => ({
     ...video,
-    videoUrl: `/api/videos/${encodeURIComponent(video.id)}`,
+    videoUrl: videoPlaybackUrl(video.id, video.videoKey),
     posterUrl: mediaUrl(video.posterKey),
   }));
 }

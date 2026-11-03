@@ -47,8 +47,40 @@ export async function readImage(key: string) {
 }
 
 const VIDEO_DIR = path.join(process.cwd(), "storage", "uploads", "videos");
-const MAX_VIDEO_BYTES = 40 * 1024 * 1024;
-const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+export const MAX_VIDEO_BYTES = 40 * 1024 * 1024;
+export const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime", "video/x-m4v"]);
+
+export function hasBlobStorage() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+export function videoStorageMode(): "blob" | "local" | "vercel-unconfigured" {
+  if (hasBlobStorage()) return "blob";
+  if (process.env.VERCEL) return "vercel-unconfigured";
+  return "local";
+}
+
+export function isRemoteVideoKey(key?: string | null): key is string {
+  return Boolean(key && /^https?:\/\//i.test(key));
+}
+
+export function isAllowedBlobUrl(url: string) {
+  try {
+    return new URL(url).hostname.endsWith(".blob.vercel-storage.com");
+  } catch {
+    return false;
+  }
+}
+
+export function inferVideoMime(file: { type?: string; name?: string }) {
+  if (file.type && VIDEO_TYPES.has(file.type)) return file.type;
+  const name = (file.name || "").toLowerCase();
+  if (name.endsWith(".webm")) return "video/webm";
+  if (name.endsWith(".mov")) return "video/quicktime";
+  if (name.endsWith(".m4v")) return "video/x-m4v";
+  if (name.endsWith(".mp4")) return "video/mp4";
+  return file.type || "";
+}
 
 export function videoFilePath(filename: string) {
   const resolved = path.resolve(VIDEO_DIR, path.basename(filename));
@@ -59,21 +91,29 @@ export function videoFilePath(filename: string) {
 }
 
 export async function saveVideoFile(file: File) {
-  if (!VIDEO_TYPES.has(file.type)) {
+  const mimeType = inferVideoMime(file);
+  if (!VIDEO_TYPES.has(mimeType)) {
     throw new Error("Use an MP4, WebM, or MOV video in 9:16 portrait.");
   }
   if (file.size > MAX_VIDEO_BYTES) {
     throw new Error("Video must be smaller than 40 MB.");
   }
   await mkdir(VIDEO_DIR, { recursive: true });
-  const ext = file.type === "video/webm" ? "webm" : file.type === "video/quicktime" ? "mov" : "mp4";
+  const ext = mimeType === "video/webm" ? "webm" : mimeType === "video/quicktime" ? "mov" : "mp4";
   const filename = `video-${Date.now()}-${randomBytes(6).toString("hex")}.${ext}`;
   await writeFile(videoFilePath(filename), Buffer.from(await file.arrayBuffer()));
-  return { filename, mimeType: file.type };
+  return { filename, mimeType };
 }
 
 export async function deleteVideoFile(filename?: string | null) {
   if (!filename) return;
+  if (isRemoteVideoKey(filename)) {
+    if (hasBlobStorage()) {
+      const { del } = await import("@vercel/blob");
+      await del(filename).catch(() => undefined);
+    }
+    return;
+  }
   try {
     await unlink(videoFilePath(filename));
   } catch {
@@ -81,6 +121,7 @@ export async function deleteVideoFile(filename?: string | null) {
   }
 }
 
-export function videoPlaybackUrl(id: string) {
+export function videoPlaybackUrl(id: string, videoKey?: string | null) {
+  if (isRemoteVideoKey(videoKey)) return videoKey;
   return `/api/videos/${encodeURIComponent(id)}`;
 }
