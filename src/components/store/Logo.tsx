@@ -1,13 +1,13 @@
 import Link from "next/link";
 
-export const BRAND_LOGO_SRC = "/nine-xn-logo.jpg";
+export const BRAND_LOGO_SRC = "/nine-xn-logo.png";
 
 const sizes = {
-  header: "h-14 w-14 md:h-16 md:w-16",
-  footer: "h-[5.5rem] w-[5.5rem]",
-  hero: "h-28 w-28 md:h-36 md:w-36",
-  mark: "h-16 w-16",
-  admin: "h-12 w-12",
+  header: "h-10 w-auto max-w-[168px] md:h-12 md:max-w-[200px]",
+  footer: "h-14 w-auto max-w-[220px]",
+  hero: "h-20 w-auto max-w-[280px] md:h-28 md:max-w-[360px]",
+  mark: "h-14 w-auto max-w-[220px]",
+  admin: "h-10 w-auto max-w-[160px]",
 };
 
 export function Logo({
@@ -26,11 +26,7 @@ export function Logo({
   return (
     <Link href="/" className={`inline-flex shrink-0 items-center ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={name}
-        className={`${sizes[size]} rounded-full object-cover shadow-[0_0_22px_rgba(200,178,115,0.28)]`}
-      />
+      <img src={src} alt={name} className={`${sizes[size]} object-contain`} />
     </Link>
   );
 }
